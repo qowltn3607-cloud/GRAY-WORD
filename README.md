@@ -1,2 +1,610 @@
 # GRAY-WORD
 LET US KNOW HOW TO SURVIVE 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제일기획 용어 도우미</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .container {
+    width: 100%;
+    max-width: 680px;
+    height: 90vh;
+    max-height: 800px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+  .header {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .header-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e63946, #f4a261);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .header-title { color: #fff; font-weight: 700; font-size: 16px; }
+  .header-sub { color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 2px; }
+  .status { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+  .status span { color: #4ade80; font-size: 12px; }
+
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .msg { display: flex; gap: 10px; align-items: flex-end; }
+  .msg.user { justify-content: flex-end; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: linear-gradient(135deg, #e63946, #f4a261);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .bubble {
+    max-width: 78%;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: keep-all;
+  }
+  .bubble.bot {
+    border-radius: 18px 18px 18px 4px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .bubble.user {
+    border-radius: 18px 18px 4px 18px;
+    background: linear-gradient(135deg, #e63946, #f4a261);
+    color: #fff;
+  }
+  .term-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 8px;
+  }
+  .term-name {
+    font-weight: 700;
+    color: #f4a261;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .term-category {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 6px;
+  }
+  .term-def { color: rgba(255,255,255,0.85); font-size: 13px; line-height: 1.6; }
+
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .chip {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 7px 14px;
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .chip:hover {
+    background: rgba(230,57,70,0.3);
+    border-color: rgba(230,57,70,0.5);
+  }
+
+  .input-area {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 14px 18px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  #input {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 12px 16px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  #input:focus { border-color: rgba(230,57,70,0.6); }
+  #input::placeholder { color: rgba(255,255,255,0.3); }
+  #sendBtn {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e63946, #f4a261);
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+  #sendBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .hint { color: rgba(255,255,255,0.35); font-size: 12px; text-align: center; margin-bottom: 6px; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .msg { animation: fadeIn 0.25s ease; }
+
+  /* 비밀번호 화면 */
+  #lockScreen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 20px;
+  }
+  .lock-box {
+    width: 100%;
+    max-width: 380px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s ease;
+  }
+  .lock-icon {
+    width: 64px; height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #e63946, #f4a261);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .lock-title {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .lock-sub {
+    color: rgba(255,255,255,0.45);
+    font-size: 13px;
+    text-align: center;
+    margin-top: -10px;
+  }
+  #pwInput {
+    width: 100%;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 14px 18px;
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+    text-align: center;
+    letter-spacing: 3px;
+    transition: border-color 0.2s;
+  }
+  #pwInput:focus { border-color: rgba(230,57,70,0.6); }
+  #pwInput::placeholder { letter-spacing: 0; color: rgba(255,255,255,0.3); }
+  #pwInput.shake {
+    animation: shake 0.4s ease;
+    border-color: rgba(230,57,70,0.8) !important;
+  }
+  #pwBtn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #e63946, #f4a261);
+    border: none;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.2s;
+  }
+  #pwBtn:hover { opacity: 0.88; }
+  #pwError {
+    color: #ff6b6b;
+    font-size: 13px;
+    min-height: 18px;
+    text-align: center;
+  }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-8px)}
+    40%{transform:translateX(8px)}
+    60%{transform:translateX(-6px)}
+    80%{transform:translateX(6px)}
+  }
+</style>
+</head>
+<body>
+
+<!-- 비밀번호 화면 -->
+<div id="lockScreen">
+  <div class="lock-box">
+    <div class="lock-icon">🔐</div>
+    <div class="lock-title">제일기획 용어 도우미</div>
+    <div class="lock-sub">접근하려면 비밀번호를 입력해주세요</div>
+    <input id="pwInput" type="password" placeholder="비밀번호 입력" />
+    <div id="pwError"></div>
+    <button id="pwBtn">입장하기</button>
+  </div>
+</div>
+
+<div class="container" id="mainApp" style="display:none;">
+  <div class="header">
+    <div class="header-icon">📘</div>
+    <div>
+      <div class="header-title">제일기획 용어 도우미</div>
+      <div class="header-sub">필수 용어집 기반 검색 챗봇 · 뭐든 물어봐요!</div>
+    </div>
+    <div class="status">
+      <div class="dot"></div>
+      <span>온라인</span>
+    </div>
+  </div>
+  <div class="messages" id="messages"></div>
+  <div class="input-area">
+    <input id="input" type="text" placeholder="궁금한 용어를 입력해봐요... (예: GRP, 내수, 스태핑)" />
+    <button id="sendBtn">🔍</button>
+  </div>
+</div>
+
+<script>
+const GLOSSARY = [
+  { name: "견적서", category: "AE > 비용/견적", def: "캠페인 제작비에 대한 산출 내역. 크게 (1) 광고주 청구 견적, (2) 외주 견적으로 나뉜다. (1)-(2) = 제일기획의 수수료(매출총이익)." },
+  { name: "사전견적", category: "AE > 비용/견적", def: "실제 콘텐츠 제작에 들어가기 전의 가견적. 외주업체에게 먼저 받고, 이를 바탕으로 광고주 청구 견적을 작성·제출한다. 광고주와의 컨센서스를 맞춘다는 관점에서 매우 중요!" },
+  { name: "완료견적", category: "AE > 비용/견적", def: "콘텐츠 온에어가 끝나 모든 제작 작업이 종료되었을 때 외주업체/광고주에게 최종으로 지불/청구해야 하는 금액. '진짜 AE'는 외주업체 완료 견적은 깎고, 광고주 청구 견적은 UP해서 수수료를 극대화한다! (AE 업무의 꽃★)" },
+  { name: "취급고", category: "AE > 비용/견적", def: "해당 캠페인의 제작비+매체비를 합친 금액. 연간 취급고는 단일 광고주가 연간으로 쓰는 총 금액이고, 캠페인 취급고는 해당 캠페인에 쓰이는 총 금액." },
+  { name: "외주비", category: "AE > 비용/견적", def: "캠페인 제작비 중 외주업체에게 지불되는 총 금액. 최대한 Down, 무조건 Down!" },
+  { name: "정가항목", category: "AE > 비용/견적", def: "광고주 청구 견적은 정가항목+외주비+대행수수료로 구성. 제일기획의 기본 인건비(디렉션비, 카피라이팅비 등)에 가격을 매겨 광고주에게 청구하는 항목." },
+  { name: "진행비", category: "AE > 비용/견적", def: "캠페인 제작 목적으로 쓰인 경비 일체. 교통비, 촬영장 식사비 등으로 구성." },
+  { name: "내수", category: "AE > 비용/실적", def: "(광고주 완료견적 – 외주비 완료견적)의 금액. 제일기획의 공식 수수료율은 17.65%이며, 내수율 공식은 '(광고주 청구가-외주비)/광고주 청구가'." },
+  { name: "매출총이익", category: "AE > 비용/실적", def: "캠페인 집행을 통해 제일기획이 얻게 되는 순수익. 내수라고도 한다. 보통 '매총'이라고 부른다." },
+  { name: "매총", category: "AE > 비용/실적", def: "매출총이익의 줄임말. AE는 이 매총에 울고 웃는다." },
+  { name: "영업이익", category: "AE > 비용/실적", def: "매출총이익에서 해당 프로젝트 참여자의 투입 시간 기반 내부 인건비를 제외한 금액." },
+  { name: "청구", category: "AE > 비용/청구&지급", def: "(1) 제작비 청구: 광고주와 협의한 완료 견적대로 매출 세금계산서를 발행. (2) 매체비 청구: 매체 특성에 따라 매출/위수탁 세금계산서 발행." },
+  { name: "지급", category: "AE > 비용/청구&지급", def: "외주업체에게 작업비용을 지불하는 과정. 보통 PM 프로님께서 처리해주신다." },
+  { name: "세금계산서", category: "AE > 비용/청구&지급", def: "(1) 양자: 광고주-제일기획 간 거래. (2) 위수탁: 광고주-제일기획-매체사 간 거래로, 대부분의 매체비가 해당." },
+  { name: "거래명세표", category: "AE > 비용/청구&지급", def: "청구 거래에 대한 내역이자 증빙 서류." },
+  { name: "경비", category: "AE > 비용/경비", def: "월별로 부서에 제공되는 법인카드 소진 가능 금액. 사무용품 구입비/접대비/부서회의비 등으로 구성." },
+  { name: "부서회의비", category: "AE > 비용/경비", def: "부서원들끼리 사용하는 비용. 점심 식사, 커피, 간식대 등 업무 교류 목적으로 사용." },
+  { name: "접대비", category: "AE > 비용/경비", def: "광고주와 긍정적인 관계 형성을 위해 사용한 금액. 식사비/선물 구입/골프 등. 보통 임원+팀장님께서 사용하시는 항목." },
+  { name: "Project", category: "AE > 프로젝트 매니지먼트", def: "Gate 시스템 내에서 관리되는 광고 캠페인의 가장 상위 단위. 보통 [브랜드/광고주-캠페인]명으로 지칭되며, 하위 개념으로 Job이 있다." },
+  { name: "Job", category: "AE > 프로젝트 매니지먼트", def: "프로젝트의 하위 개념. 예상 산출물의 성격과 스태핑 등에 맞춰 잡이 생성된다. 흔히 '잡 딴다'고 표현한다." },
+  { name: "스태핑", category: "AE > 프로젝트 매니지먼트", def: "잡 리퀘스트 시, 해당 잡에 투입되는 제작/매체/BE 등 모든 인원을 선정하는 것." },
+  { name: "투입률", category: "AE > 프로젝트 매니지먼트", def: "해당 잡에 스태프 인원이 투입한 시간. 즉 타임 리포트 내 잡에 기입한 시간." },
+  { name: "광고 대행 계약", category: "AE > 계약", def: "광고 대행을 진행하기 위해 반드시 작성해야 하는 계약서. 제일기획-광고주 쌍방 법무 검토를 통해 완성한다." },
+  { name: "인감", category: "AE > 계약", def: "법인인감: 광고 대행 계약서 등 큰 계약서에 사용. 사용인감: 모델/AOR/비밀유지 계약서 등 하위 계약서에 사용. 인감 사용 후 컴플라이언스 팀에 제출 필수." },
+  { name: "GRP", category: "미디어 > TV 효율지표", def: "Gross Rating Points. 집행 스케줄 중 '광고시청률'의 총합. 예) 뉴스데스크 2% + 주말연속극 3% = GRP 5." },
+  { name: "CPRP", category: "미디어 > TV 효율지표", def: "Cost Per Rating Points. 1 GRP를 얻기 위해 필요한 비용. 총광고비/GRP로 계산." },
+  { name: "Reach", category: "미디어 > TV 효율지표", def: "도달. 광고에 노출된 타깃의 비율. R+1: 최소 1번 이상 노출된 비율, R+3: 최소 3번 이상 노출된 비율." },
+  { name: "CPM", category: "미디어 > 디지털 효율지표", def: "Cost Per Mile. 1,000명에게 도달하는 데 필요한 비용. '도달'을 목표로 집행되는 캠페인의 주요 효율 지표." },
+  { name: "CPV", category: "미디어 > 디지털 효율지표", def: "Cost Per View. 1조회를 얻는 데 필요한 비용. 매체별로 '조회' 기준이 상이함 (예: 틱톡은 3초만 봐도 조회로 카운팅)." },
+  { name: "CPC", category: "미디어 > 디지털 효율지표", def: "Cost Per Click. 1클릭을 얻는 데 필요한 비용. Click을 Action으로 대체해 CPA로 쓰기도 한다." },
+  { name: "CPA", category: "미디어 > 디지털 효율지표", def: "Cost Per Action. 목표 행동(구매, 가입 등) 1건당 필요한 비용." },
+  { name: "CTR", category: "미디어 > 디지털 효율지표", def: "Click Through Rate. 클릭률. 광고 노출 대비 클릭 수의 비율." },
+  { name: "CVR", category: "미디어 > 디지털 효율지표", def: "Conversion Rate. 전환율. 광고 클릭 후 목표 행동으로 이어진 비율." },
+  { name: "ROAS", category: "미디어 > 디지털 효율지표", def: "Return On Ad Spend. 광고비 대비 매출. 광고비 효율을 측정하는 지표." },
+  { name: "미디어 믹스", category: "미디어 > 미디어플래닝", def: "채널/상품별로 예산을 어떻게 분배할 것인지에 대한 계획. 미디어 제안이 컨펌되면 이를 바탕으로 미디어 믹스가 나온다." },
+  { name: "청약", category: "미디어 > 미디어플래닝", def: "미디어믹스가 컨펌되면 렙사에 광고를 예약하는 것. 지상파TV는 매월 20일경 마감." },
+  { name: "큐시트", category: "미디어 > 미디어플래닝", def: "TV광고 청약 완료 후 공유되는 일정표. 지상파TV는 편성 변경이 적어 정확한 시간이 기입된 큐시트가 나온다." },
+  { name: "출고", category: "미디어 > 출고/심의", def: "제작물을 매체에 송출될 수 있는 상태로 전달하는 것. TV: 초수, 프레임레이트(29.97fps), 확장자(mxf/mov) 확인 필수." },
+  { name: "지상파TV", category: "미디어 > 매체 종류", def: "KBS / MBC / SBS / EBS와 산하 지역 민방을 지칭. KOBACO와 SBS M&C를 통해 광고 판매. 수수료율 13.5%." },
+  { name: "종편", category: "미디어 > 매체 종류", def: "종합편성채널의 줄임말. JTBC, TV조선, 채널A, MBN 4사. 수수료율 15%." },
+  { name: "CATV", category: "미디어 > 매체 종류", def: "종편/SBS 외 민간 사업자가 운영하는 방송국 채널들. 예) CJ ENM(tvN, Mnet 등). 수수료율 15%." },
+  { name: "IPTV", category: "미디어 > 매체 종류", def: "통신사업자(BTV, Olleh TV, U+)들이 판매하는 광고상품. 대표 예) 홈화면 PrePlay 광고. 수수료율 15%." },
+  { name: "OOH", category: "미디어 > 매체 종류", def: "Out Of Home. 가정 밖에서 만나는 미디어. 교통 매체, 옥외광고, 극장 광고가 대표적. 수수료율 10%." },
+  { name: "ATL", category: "제작 > 일반", def: "Above The Line. TV, 라디오, 신문, 잡지 등 4대 매체를 활용한 광고 활동." },
+  { name: "BTL", category: "제작 > 일반", def: "Below The Line. 4대 매체 광고 이외의 프로모션 활동. 이벤트, 전시, SP 등이 해당." },
+  { name: "IMC", category: "제작 > 일반", def: "Integrated Marketing Communication. 통합 마케팅 커뮤니케이션. ATL, BTL, 디지털 등 다양한 채널을 통합하여 일관된 메시지를 전달하는 것." },
+  { name: "스토리보드", category: "제작 > 일반", def: "촬영을 시작하기 전, 장면 하나하나를 그림으로 나타낸 것. 영상 제작의 기초 설계도." },
+  { name: "콘티", category: "제작 > 일반", def: "Continuity. 촬영 전에 각 장면의 구성을 그림으로 정리한 것. 스토리보드와 유사한 개념." },
+  { name: "PPM", category: "제작 > 일반", def: "Pre-Production Meeting. 촬영 전 사전 회의. 클라이언트, AE, 프로덕션이 모여 촬영 방향, 캐스팅, 로케이션 등을 최종 확인." },
+  { name: "온에어", category: "제작 > 일반", def: "광고가 실제로 매체에 방영되는 것." },
+  { name: "KV", category: "제작 > 일반", def: "Key Visual. 캠페인의 핵심 비주얼. 인쇄/디지털 광고의 메인 이미지를 의미." },
+  { name: "카피", category: "제작 > 일반", def: "광고에 사용되는 문구. 헤드카피(메인 문구)와 바디카피(설명 문구)로 나뉜다." },
+  { name: "로케이션", category: "제작 > 일반", def: "촬영 장소. 사전에 로케이션 헌팅을 통해 촬영에 적합한 장소를 선정한다." },
+  { name: "바이럴", category: "디지털 > 일반", def: "콘텐츠가 SNS 등을 통해 빠르게 퍼지는 현상." },
+  { name: "퍼포먼스 마케팅", category: "디지털 > 일반", def: "광고의 성과를 데이터로 측정하고 최적화하는 마케팅 방식. CPC, CPA 등의 지표를 활용." },
+  { name: "SEO", category: "디지털 > 일반", def: "Search Engine Optimization. 검색 엔진 최적화. 검색 시 상위 노출될 수 있도록 최적화하는 작업." },
+  { name: "DA", category: "디지털 > 일반", def: "Display Ad. 디스플레이 광고. 이미지, 동영상 등 시각적 요소를 활용한 온라인 광고." },
+  { name: "SA", category: "디지털 > 일반", def: "Search Ad. 검색 광고. 검색 엔진에서 특정 키워드 검색 시 상단에 노출되는 광고." },
+  { name: "인플루언서", category: "디지털 > 일반", def: "SNS에서 많은 팔로워를 보유하고 영향력을 가진 사람. 브랜드 홍보에 활용." },
+  { name: "UGC", category: "디지털 > 일반", def: "User Generated Content. 사용자가 직접 제작한 콘텐츠. 소비자 참여를 유도하는 방식으로 활용." },
+  { name: "랜딩 페이지", category: "디지털 > 일반", def: "광고를 클릭했을 때 연결되는 페이지. 광고의 목적에 맞게 설계된다." },
+  { name: "UI", category: "디지털 > UX/개발", def: "User Interface. 사용자가 제품/서비스와 상호작용하는 화면 디자인 요소." },
+  { name: "UX", category: "디지털 > UX/개발", def: "User Experience. 사용자가 제품/서비스를 이용하면서 느끼는 전반적인 경험." },
+  { name: "와이어프레임", category: "디지털 > UX/개발", def: "앱이나 웹의 화면 구조를 간단히 표현한 설계 도면." },
+  { name: "프로토타입", category: "디지털 > UX/개발", def: "실제 제품과 유사하게 만든 시제품. 디자인 검증 및 테스트 목적으로 제작." },
+  { name: "반응형 웹", category: "디지털 > UX/개발", def: "PC, 스마트폰, 태블릿 등 디스플레이에 따라 화면이 자동으로 변화되도록 만드는 웹페이지 접근 방법." },
+  { name: "프론트엔드", category: "디지털 > UX/개발", def: "웹이나 앱 상에서 사용자에게 보여지는 부분." },
+  { name: "백엔드", category: "디지털 > UX/개발", def: "사용자에게 보여지지 않는 정보 처리와 데이터베이스, 서버 등의 부분." },
+  { name: "네이티브 앱", category: "디지털 > UX/개발", def: "모바일 기기에 최적화된 언어로 개발된 앱. 안드로이드/iOS 기반." },
+  { name: "웹앱", category: "디지털 > UX/개발", def: "웹 페이지로 먼저 개발된 후 서비스를 앱으로 감싼 형태." },
+  { name: "하이브리드 앱", category: "디지털 > UX/개발", def: "네이티브와 웹앱의 장점을 섞은 앱의 형태." },
+  { name: "QA", category: "디지털 > UX/개발", def: "Quality Assurance. 페이지가 라이브 되기 전 이슈가 없도록 검수하는 과정." },
+  { name: "AB Test", category: "디지털 > UX/개발", def: "두 가지 버전(A와 B)을 비교하여 어떤 것이 더 효과적인지 정량 측정하는 방법." },
+  { name: "MVP", category: "디지털 > UX/개발", def: "Minimum Viable Product. 최소한으로 실행 가능한 제품. 비즈니스 모델의 기본 가설을 테스트할 수 있다." },
+  { name: "AEM", category: "디지털 > 삼성닷컴", def: "Adobe Experience Manager. 삼성닷컴 웹사이트 구축을 위한 콘텐츠 관리 솔루션." },
+  { name: "PVI", category: "디지털 > 삼성닷컴", def: "Product Value Information System. 삼성전자에서 사용하는 종합 콘텐츠 소스 관리 시스템." },
+  { name: "PDP", category: "디지털 > 삼성닷컴", def: "Product Detail Page. 제품 상세 페이지. 제품 스펙 및 상세 정보가 노출되는 페이지." },
+  { name: "PIM", category: "디지털 > 삼성닷컴", def: "Product Information Management. AEM 내에서 제품정보를 관리하는 시스템." },
+  { name: "GRO", category: "디지털 > 삼성닷컴", def: "Global Roll Out. 신규 제작한 삼성닷컴 페이지가 글로벌 다양한 국가에 퍼블리싱되는 것." },
+  { name: "GNB", category: "디지털 > 삼성닷컴", def: "Global Navigation Bar. 삼성닷컴 가장 상단에 위치하는 navigation bar." },
+  { name: "LNB", category: "디지털 > 삼성닷컴", def: "Local Navigation Bar. 특정 페이지에서 자체적으로 콘텐츠를 분류하기 위해 사용하는 navigation bar." },
+  { name: "WTB", category: "디지털 > 삼성닷컴", def: "Where To Buy. 구매 가능한 3rd party 웹사이트나 오프라인 매장을 알려주는 페이지/팝업." },
+  { name: "RTL", category: "디지털 > 삼성닷컴", def: "Right To Left. 아랍어 국가의 경우 오른쪽에서 왼쪽으로 읽기 때문에 이미지/텍스트 위치가 대칭 형태." },
+  { name: "RTS", category: "디지털 > 삼성닷컴", def: "Ready To Sell. 제품 판매가 시작되는 시점." },
+  { name: "WSC", category: "디지털 > 삼성닷컴", def: "Web Support Center. 삼성닷컴 페이지들의 운영, 퍼블리싱을 담당하는 조직." },
+  { name: "GBM", category: "디지털 > 삼성닷컴", def: "Global Business Management. 무선, 가전, 영상디스플레이 사업부 등 삼성전자의 각 사업부를 지칭." },
+  { name: "DMM", category: "디지털 > 삼성닷컴", def: "Digital Marketing Manager. 삼성전자 각 법인의 디지털 마케팅 담당자, 즉 삼성전자 로컬 닷컴 담당자." },
+  { name: "SSO", category: "디지털 > 삼성닷컴", def: "Shared Service Operation. 구주/CIS 지역의 삼성닷컴 관리/제작을 담당하는 조직." },
+  { name: "Queue line", category: "BE > 이벤트/전시", def: "Queuing. 전시/이벤트 등에 입장하거나 체험 프로그램을 위한 대기열." },
+  { name: "큐잉라인", category: "BE > 이벤트/전시", def: "전시/이벤트 등에 입장하거나 체험 프로그램을 위한 대기열. Queue line과 동일." },
+  { name: "강제 동선", category: "BE > 이벤트/전시", def: "정해진 관람 순서에 의해서 관람을 하도록 만드는 전시 동선. 입구와 출구가 하나씩." },
+  { name: "자유 동선", category: "BE > 이벤트/전시", def: "관람객이 자신의 의지대로 자유롭게 체험존을 이동하거나 입퇴장할 수 있는 전시 동선." },
+  { name: "IMAG", category: "BE > 영상/중계", def: "Image Magnify. 중계 카메라의 줌을 당겨 인물을 화면에 꽉 차게 담는 것." },
+  { name: "바스트 샷", category: "BE > 영상/중계", def: "Bust Shot. 중계 카메라를 이용해 인물의 상반신을 잡는 것." },
+  { name: "데모찌", category: "BE > 영상/중계", def: "카메라를 설치나 고정하지 않고 직접 어깨에 걸쳐 들고 촬영하는 것. 숄더 캠과 유사." },
+  { name: "PIP", category: "BE > 영상/중계", def: "Picture in Picture. 스크린 전체 화면 위에 별도의 작은 분할 화면을 띄우는 것." },
+  { name: "후아", category: "BE > 영상/중계", def: "영상 효과 중 화이트 아웃 효과 그 자체. 또는 해당 효과를 배경으로 하는 장면." },
+  { name: "기깍끼", category: "BE > 현장 용어", def: "정확한 타이밍에 맞게 움직임 또는 효과가 작동하는 것." },
+  { name: "마", category: "BE > 현장 용어", def: "정확한 타이밍에 맞지 못한 움직임 또는 효과로 생기는 (주로 정적의) 순간. '마가 뜨다'라고도 표현." },
+  { name: "피치", category: "BE > 장비/설비", def: "LED 패널 한 면에 들어찬 LED 소자 간의 거리. 피치가 낮을수록 고해상도 표현 가능." },
+  { name: "먹", category: "BE > 현장 용어", def: "영상/PPT 콘텐츠에서 블랙 아웃 시키는 구간. '먹으로 처리하다'고 표현." },
+  { name: "말다", category: "BE > 현장 용어", def: "영상 또는 시안을 렌더링하여 최종 파일을 만드는 것. '지금 말고 있어요'처럼 사용." },
+  { name: "데꼬보꼬", category: "BE > 현장 용어", def: "강조점의 완급 조절을 통한 명확한 콘트라스트 표현. 감정/색상/명암/임팩트 등 다양하게 적용." },
+  { name: "SOV", category: "BE > 음향", def: "Sound of Video. 기존 영상 소스(소재)에 포함되어있는 음성." },
+  { name: "그린룸", category: "BE > 이벤트/전시", def: "Green Room. 주로 무대의 출연진 대기실." },
+  { name: "무대 상수", category: "BE > 무대", def: "무대를 마주 보고 무대 오른쪽. 등단/입장 동선으로 사용." },
+  { name: "무대 하수", category: "BE > 무대", def: "무대를 마주 보고 무대 왼쪽. 퇴장 동선으로 사용." },
+  { name: "아시바", category: "BE > 장비/설비", def: "레이허(Layher). 높은 곳의 공사/작업을 위해 임시로 쌓아 올린 철제 파이프 가설물." },
+  { name: "트러스", category: "BE > 장비/설비", def: "견고하게 힘을 받도록 겹겹이 연결하여 만든 구조물. 조명과 스피커 설치에 활용." },
+  { name: "헤베", category: "BE > 장비/설비", def: "미터 제곱(m²)과 동의어. 1헤베 = 1m²." },
+  { name: "스라", category: "BE > 현장 용어", def: "사물의 끝 선. '스라끼리 얼라인 해주세요'처럼 사용." },
+  { name: "잔넬", category: "BE > 인쇄/제작", def: "채널싸인. 입체 텍스트 사이니지 제작 방식으로 LED 라이팅이 들어감." },
+  { name: "스카시", category: "BE > 인쇄/제작", def: "입체 텍스트 사이니지 제작 방식. 주로 고무나 철제를 커팅하여 제작." },
+  { name: "고보", category: "BE > 장비/설비", def: "Gobo 조명/프로젝터. 바닥 또는 벽에 비추는 조명으로, 그림이나 텍스트 표현 가능." },
+  { name: "리깅", category: "BE > 장비/설비", def: "로고나 브랜딩을 위한 구조물을 천장에 걸어 올리는 작업." },
+  { name: "바리솔", category: "BE > 장비/설비", def: "천장이나 벽 등 면을 마감하는 원단 이름. 주로 간접 조명을 비춰 마감할 때 사용." },
+  { name: "핀 조명", category: "BE > 조명", def: "Spot Light. 렌즈를 부착해서 빛줄기를 줄여 제한된 지역을 비추도록 설계된 조명기." },
+  { name: "파 조명", category: "BE > 조명", def: "Par Light. 반사경이 내장된 램프를 사용한 조명기. 소극장, 이벤트 현장에서 주로 사용." },
+  { name: "무빙 라이트", category: "BE > 조명", def: "Moving Light. 빛의 크기, 각도, 질감, 색깔 등을 원격으로 조정할 수 있는 자동화된 조명기." },
+  { name: "하우스 조명", category: "BE > 조명", def: "House Lighting. 관람객을 위해 공연장의 객석과 통로를 밝히는 조명. 행사장 기본 설비 조명을 통칭." },
+  { name: "MR", category: "BE > 음향", def: "Music Recorder. 반주만 녹음되어 있는 음악." },
+  { name: "AR", category: "BE > 음향", def: "On Air Recorder. 보컬까지 다 녹음된 음악. 이런 행동을 립싱크(Lip)라고 함." },
+  { name: "립싱크", category: "BE > 음향", def: "AR 음원에 맞춰 입 모양만 따라 하는 것. AR(On Air Recorder) 사용 시 해당." },
+  { name: "Howling", category: "BE > 음향", def: "신호의 피드백으로 인해 발생되는 음향 장애. 끼익 하는 쇳소리." },
+  { name: "하울링", category: "BE > 음향", def: "신호의 피드백으로 인해 발생되는 음향 장애. 끼익 하는 쇳소리. Howling과 동일." },
+  { name: "임장감", category: "BE > 현장 용어", def: "현장(현실)에서 실제로 느낄 수 있는 감각." },
+  { name: "우라까이", category: "공통 > 사내 용어", def: "베껴 쓰다. 복사-붙여넣기로 조금만 고쳐 쓰는 것." },
+  { name: "오사마리", category: "공통 > 사내 용어", def: "일이나 작업 따위를 마무리 짓거나 종료하다." },
+  { name: "잔잔바리", category: "공통 > 사내 용어", def: "임팩트 없이 고만고만한 것들." },
+  { name: "장표", category: "공통 > 사내 용어", def: "PPT 슬라이드 1장." },
+  { name: "덱", category: "공통 > 사내 용어", def: "PPT 문서 전체." },
+  { name: "뻬다", category: "공통 > 사내 용어", def: "영상/그래픽/PPT 등의 배경이 되는 이미지. 또는 PPT 템플릿." },
+  { name: "아이템 나래비", category: "공통 > 사내 용어", def: "명확한 테마나 콘셉트 없이 액션 아이템 위주로 늘어놓는 행위. 질보다 양." },
+  { name: "마도 잡다", category: "공통 > 사내 용어", def: "프로젝트 중추 역할을 하다. 리더 역할을 수행하다." },
+  { name: "아도치다", category: "공통 > 사내 용어", def: "모든 영역을 차지하다. 싹쓸이하다." },
+  { name: "부러지다", category: "공통 > 사내 용어", def: "어떤 사안에 대해 양자간 합의하다. 확정 짓다. '부러뜨리다'로도 쓴다." },
+  { name: "WIP", category: "공통 > 약어", def: "Work in Progress. 작업 중인 버전." },
+  { name: "EOD", category: "공통 > 약어", def: "End of Day. 일과 시간 또는 자정." },
+  { name: "TBD", category: "공통 > 약어", def: "To Be Determined. 미정." },
+  { name: "TBU", category: "공통 > 약어", def: "To Be Updated. 업데이트 중." },
+  { name: "4도 인쇄", category: "BE > 인쇄/제작", def: "CMYK 풀칼라 인쇄." },
+  { name: "1도 인쇄", category: "BE > 인쇄/제작", def: "1가지 색 인쇄." },
+  { name: "오시", category: "BE > 인쇄/제작", def: "누름선. 리플렛 등 접어야 하는 부분에 압력으로 눌러주는 선." },
+  { name: "귀도리", category: "BE > 인쇄/제작", def: "각진 모서리를 둥근 곡선으로 재단하는 것." },
+  { name: "도무송 가공", category: "BE > 인쇄/제작", def: "Thompson 가공. 인쇄물에 칼선을 넣어 원하는 모양으로 따내는 가공." },
+  { name: "에폭시", category: "BE > 인쇄/제작", def: "열처리한 돌출 인쇄로 특정 부위를 강조할 수 있음." },
+  { name: "형압", category: "BE > 인쇄/제작", def: "엠보싱. 종이에 원하는 모양으로 튀어나오도록 눌러 가공하는 것." },
+  { name: "엠보싱", category: "BE > 인쇄/제작", def: "형압이라고도 함. 종이에 원하는 모양으로 튀어나오도록 눌러 가공하는 것." },
+];
+
+const SUGGESTED = ["GRP가 뭐야?", "내수 설명해줘", "CPM이랑 CPV 차이", "스태핑이 뭐야?", "우라까이가 뭐야?", "덱이 뭐야?"];
+
+function normalize(str) {
+  return str.toLowerCase().replace(/[\s\-_\/]/g, '');
+}
+
+function search(query) {
+  const q = normalize(query);
+  if (!q) return [];
+
+  // Score each term
+  const scored = GLOSSARY.map(term => {
+    const name = normalize(term.name);
+    const def = normalize(term.def);
+    const cat = normalize(term.category);
+    let score = 0;
+    if (name === q) score += 100;
+    else if (name.includes(q) || q.includes(name)) score += 60;
+    if (def.includes(q)) score += 20;
+    if (cat.includes(q)) score += 10;
+    // partial match each word
+    q.split('').forEach(ch => { if (name.includes(ch)) score += 1; });
+    return { term, score };
+  });
+
+  return scored
+    .filter(s => s.score > 5)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5)
+    .map(s => s.term);
+}
+
+function addMessage(role, html, isHTML = false) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+
+  if (role === 'bot') {
+    div.innerHTML = `<div class="avatar">📘</div><div class="bubble bot"></div>`;
+    if (isHTML) div.querySelector('.bubble').innerHTML = html;
+    else div.querySelector('.bubble').textContent = html;
+  } else {
+    div.innerHTML = `<div class="bubble user"></div>`;
+    div.querySelector('.bubble').textContent = html;
+  }
+
+  msgs.appendChild(div);
+  div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function renderResults(query, results) {
+  if (results.length === 0) {
+    addMessage('bot', `"${query}"에 대한 용어를 찾지 못했어요 😅\n\n다른 키워드로 다시 검색해봐요! 예를 들어 약어(GRP, CPM)나 한글 이름으로 검색하면 잘 나와요.`);
+    return;
+  }
+
+  let html = '';
+  if (results.length === 1) {
+    html = `<div style="margin-bottom:6px">📖 <b>"${query}"</b> 찾았어요!</div>`;
+  } else {
+    html = `<div style="margin-bottom:6px">📖 <b>"${query}"</b> 관련 용어 ${results.length}개를 찾았어요!</div>`;
+  }
+
+  results.forEach(term => {
+    html += `
+      <div class="term-card">
+        <div class="term-name">${term.name}</div>
+        <div class="term-category">📂 ${term.category}</div>
+        <div class="term-def">${term.def}</div>
+      </div>`;
+  });
+
+  addMessage('bot', html, true);
+}
+
+function handleSend(text) {
+  const query = (text || document.getElementById('input').value).trim();
+  if (!query) return;
+
+  document.getElementById('input').value = '';
+  addMessage('user', query);
+
+  // Remove suggested chips if still showing
+  const chips = document.getElementById('chips');
+  if (chips) chips.remove();
+
+  setTimeout(() => {
+    const results = search(query);
+    renderResults(query, results);
+  }, 200);
+}
+
+
+// 비밀번호 로직
+const CORRECT_PW = '2026AE';
+
+function checkPassword() {
+  const val = document.getElementById('pwInput').value;
+  const err = document.getElementById('pwError');
+  const inp = document.getElementById('pwInput');
+  if (val === CORRECT_PW) {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'flex';
+    initApp();
+  } else {
+    err.textContent = '비밀번호가 틀렸어요. 다시 시도해봐요! 🔒';
+    inp.value = '';
+    inp.classList.remove('shake');
+    void inp.offsetWidth;
+    inp.classList.add('shake');
+    setTimeout(() => inp.classList.remove('shake'), 400);
+  }
+}
+
+document.getElementById('pwBtn').onclick = checkPassword;
+document.getElementById('pwInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkPassword();
+});
+
+function initApp() {
+// Initial bot message + chips
+
+  addMessage('bot', '안녕하세요! 👋 제일기획 필수 용어집 검색 챗봇이에요.\n\n궁금한 용어를 입력하면 바로 찾아드릴게요! 🔍', false);
+
+  // Add chips
+  const msgs = document.getElementById('messages');
+  const chipsDiv = document.createElement('div');
+  chipsDiv.id = 'chips';
+
+  const hint = document.createElement('div');
+  hint.className = 'hint';
+  hint.textContent = '이런 거 검색해봐요 👇';
+  chipsDiv.appendChild(hint);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'suggestions';
+  SUGGESTED.forEach(q => {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.textContent = q;
+    btn.onclick = () => handleSend(q);
+    wrap.appendChild(btn);
+  });
+  chipsDiv.appendChild(wrap);
+  msgs.appendChild(chipsDiv);
+};
+
+document.getElementById('sendBtn').onclick = () => handleSend();
+document.getElementById('input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleSend();
+});
+}
+</script>
+</body>
+</html>
