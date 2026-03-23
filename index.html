@@ -596,13 +596,12 @@ function initApp() {
   });
   chipsDiv.appendChild(wrap);
   msgs.appendChild(chipsDiv);
-};
+}
 
 document.getElementById('sendBtn').onclick = () => handleSend();
 document.getElementById('input').addEventListener('keydown', e => {
   if (e.key === 'Enter') handleSend();
 });
-}
 </script>
 </body>
 </html>
