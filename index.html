@@ -2,102 +2,414 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>제일기획 용어 도우미</title>
-
-<!-- Firebase SDK (import 없이 script 태그로 직접 로드) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>제일기획 지식 도우미</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
 <style>
-* { margin:0;padding:0;box-sizing:border-box; }
-body { min-height:100vh;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;display:flex;align-items:center;justify-content:center;padding:20px; }
-#lockScreen { width:100%;max-width:380px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:40px 32px;display:flex;flex-direction:column;align-items:center;gap:20px;backdrop-filter:blur(20px);box-shadow:0 30px 80px rgba(0,0,0,0.5); }
-.lock-icon { width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#e63946,#f4a261);display:flex;align-items:center;justify-content:center;font-size:28px; }
-.lock-title { color:#fff;font-size:18px;font-weight:700;text-align:center; }
-.lock-sub { color:rgba(255,255,255,0.45);font-size:13px;text-align:center;margin-top:-10px; }
-#pwInput { width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:14px 18px;color:#fff;font-size:15px;outline:none;font-family:inherit;text-align:center;letter-spacing:3px; }
-#pwInput::placeholder { letter-spacing:0;color:rgba(255,255,255,0.3); }
+:root {
+  --bg: #0d0d14;
+  --surface: #14141f;
+  --surface2: #1c1c2e;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --primary: #e63946;
+  --secondary: #f4a261;
+  --accent: #4ade80;
+  --text: #f0f0f5;
+  --text2: rgba(240,240,245,0.6);
+  --text3: rgba(240,240,245,0.35);
+  --tab-h: 52px;
+  --header-h: 60px;
+  --input-h: 68px;
+}
+* { margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent; }
+html,body { height:100%; }
+body {
+  background:var(--bg);
+  font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  color:var(--text);
+  display:flex;align-items:center;justify-content:center;
+  padding:0;
+}
+
+/* ── LOCK ── */
+#lockScreen {
+  width:100%;max-width:360px;
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  padding:40px 28px;
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+  box-shadow:0 40px 80px rgba(0,0,0,0.6);
+  margin:20px;
+}
+.lock-logo {
+  width:60px;height:60px;border-radius:18px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+}
+.lock-title { font-size:17px;font-weight:700;text-align:center;letter-spacing:-0.3px; }
+.lock-sub { color:var(--text3);font-size:13px;text-align:center;margin-top:-8px; }
+#pwInput {
+  width:100%;background:rgba(255,255,255,0.07);
+  border:1px solid var(--border2);border-radius:14px;
+  padding:14px 18px;color:#fff;font-size:15px;outline:none;
+  font-family:inherit;text-align:center;letter-spacing:4px;
+  transition:border .2s;
+}
+#pwInput:focus { border-color:var(--primary); }
+#pwInput::placeholder { letter-spacing:0;color:var(--text3); }
 #pwError { color:#ff6b6b;font-size:13px;min-height:18px;text-align:center; }
-#pwBtn { width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,#e63946,#f4a261);border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit; }
-#mainApp { display:none;width:100%;max-width:680px;height:90vh;max-height:800px;flex-direction:column;border-radius:20px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.5); }
-.header { background:rgba(255,255,255,0.05);backdrop-filter:blur(20px);padding:18px 24px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:12px;flex-shrink:0; }
-.header-icon { width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#e63946,#f4a261);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0; }
-.header-title { color:#fff;font-weight:700;font-size:16px; }
-.header-sub { color:rgba(255,255,255,0.5);font-size:12px;margin-top:2px; }
-.header-right { margin-left:auto;display:flex;align-items:center;gap:10px; }
-.status { display:flex;align-items:center;gap:6px; }
-.dot { width:8px;height:8px;border-radius:50%;background:#4ade80; }
-.status span { color:#4ade80;font-size:12px; }
-#addBtn { background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:6px 12px;color:#fff;font-size:12px;cursor:pointer;font-family:inherit; }
-.messages { flex:1;overflow-y:auto;padding:20px;background:rgba(255,255,255,0.02);display:flex;flex-direction:column;gap:14px; }
-.msg { display:flex;gap:10px;align-items:flex-end; }
+#pwBtn {
+  width:100%;padding:14px;border-radius:14px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:opacity .15s;
+}
+#pwBtn:active { opacity:.85; }
+
+/* ── MAIN APP ── */
+#mainApp {
+  display:none;
+  width:100%;max-width:700px;
+  height:100vh;max-height:100vh;
+  flex-direction:column;
+  background:var(--surface);
+  overflow:hidden;
+}
+@media(min-width:701px){
+  body { padding:16px; }
+  #mainApp { height:calc(100vh - 32px);max-height:860px;border-radius:20px;box-shadow:0 40px 80px rgba(0,0,0,0.5); }
+}
+
+/* ── HEADER ── */
+.header {
+  height:var(--header-h);
+  background:var(--surface2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+  padding:0 16px;
+  flex-shrink:0;
+}
+.header-icon {
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;
+}
+.header-title { font-size:15px;font-weight:700;letter-spacing:-0.3px; }
+.header-sub { color:var(--text3);font-size:11px;margin-top:1px; }
+.header-right { margin-left:auto;display:flex;align-items:center;gap:8px; }
+.status-dot { width:7px;height:7px;border-radius:50%;background:var(--accent); }
+.status-txt { color:var(--accent);font-size:11px;font-weight:600; }
+#addBtn {
+  background:rgba(255,255,255,0.08);border:1px solid var(--border2);
+  border-radius:8px;padding:6px 10px;color:var(--text2);font-size:12px;
+  cursor:pointer;font-family:inherit;transition:background .15s;white-space:nowrap;
+}
+#addBtn:active { background:rgba(255,255,255,0.15); }
+
+/* ── TABS ── */
+.tabs {
+  display:flex;height:var(--tab-h);
+  background:var(--surface2);border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.tab {
+  flex:1;border:none;background:none;
+  color:var(--text3);font-size:13px;font-weight:600;
+  cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  position:relative;transition:color .2s;
+  letter-spacing:-0.2px;
+}
+.tab.active { color:var(--text); }
+.tab.active::after {
+  content:'';position:absolute;bottom:0;left:16px;right:16px;
+  height:2px;background:linear-gradient(90deg,var(--primary),var(--secondary));
+  border-radius:2px 2px 0 0;
+}
+.tab-icon { font-size:15px; }
+
+/* ── PANELS ── */
+.panel { display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0; }
+.panel.active { display:flex; }
+
+/* ── CHAT MESSAGES ── */
+.messages {
+  flex:1;overflow-y:auto;
+  padding:16px;
+  display:flex;flex-direction:column;gap:12px;
+  overscroll-behavior:contain;
+}
+.msg { display:flex;gap:8px;align-items:flex-end; }
 .msg.user { justify-content:flex-end; }
-.avatar { width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#e63946,#f4a261);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0; }
-.bubble { max-width:78%;padding:12px 16px;font-size:14px;line-height:1.65;white-space:pre-wrap;word-break:keep-all; }
-.bubble.bot { border-radius:18px 18px 18px 4px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.1);color:#fff; }
-.bubble.user { border-radius:18px 18px 4px 18px;background:linear-gradient(135deg,#e63946,#f4a261);color:#fff; }
-.term-card { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px 14px;margin-top:8px; }
-.term-name { font-weight:700;color:#f4a261;font-size:15px;margin-bottom:4px; }
-.term-cat { font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px; }
-.term-def { color:rgba(255,255,255,0.85);font-size:13px;line-height:1.6; }
-.term-badge { display:inline-block;font-size:10px;background:rgba(74,222,128,0.2);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:middle; }
-.suggestions { display:flex;flex-wrap:wrap;gap:8px;margin-top:10px; }
-.chip { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:7px 14px;color:rgba(255,255,255,0.8);font-size:13px;cursor:pointer;font-family:inherit; }
-.hint { color:rgba(255,255,255,0.35);font-size:12px;text-align:center;margin-bottom:6px; }
-.input-area { background:rgba(255,255,255,0.05);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.1);padding:14px 18px;display:flex;gap:10px;align-items:center;flex-shrink:0; }
-#chatInput { flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:12px 16px;color:#fff;font-size:14px;outline:none;font-family:inherit; }
-#chatInput::placeholder { color:rgba(255,255,255,0.3); }
-#chatBtn { width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#e63946,#f4a261);border:none;cursor:pointer;font-size:18px;flex-shrink:0; }
-#modal { display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px; }
+.avatar {
+  width:28px;height:28px;border-radius:8px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;
+}
+.bubble {
+  max-width:80%;padding:11px 14px;
+  font-size:13.5px;line-height:1.65;word-break:keep-all;
+}
+.bubble.bot {
+  border-radius:16px 16px 16px 4px;
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+}
+.bubble.user {
+  border-radius:16px 16px 4px 16px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;
+}
+.term-card {
+  background:rgba(255,255,255,0.05);border:1px solid var(--border2);
+  border-radius:10px;padding:11px 13px;margin-top:8px;
+}
+.term-name { font-weight:700;color:var(--secondary);font-size:14px;margin-bottom:3px; }
+.term-cat { font-size:11px;color:var(--text3);margin-bottom:5px; }
+.term-def { color:rgba(255,255,255,0.82);font-size:13px;line-height:1.6; }
+.term-badge {
+  display:inline-block;font-size:10px;
+  background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);
+  color:var(--accent);border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:middle;
+}
+.ai-badge {
+  display:inline-block;font-size:10px;
+  background:rgba(230,57,70,0.15);border:1px solid rgba(230,57,70,0.3);
+  color:#f87171;border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:middle;
+}
+.suggestions { display:flex;flex-wrap:wrap;gap:7px;margin-top:10px; }
+.chip {
+  background:rgba(255,255,255,0.07);border:1px solid var(--border2);
+  border-radius:20px;padding:6px 13px;color:var(--text2);font-size:12.5px;
+  cursor:pointer;font-family:inherit;transition:background .15s;
+}
+.chip:active { background:rgba(255,255,255,0.15); }
+.hint { color:var(--text3);font-size:12px;text-align:center;margin-bottom:6px; }
+.typing { display:flex;gap:5px;align-items:center;padding:12px 16px; }
+.typing span { width:7px;height:7px;background:var(--text3);border-radius:50%;animation:blink 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay:.2s; }
+.typing span:nth-child(3) { animation-delay:.4s; }
+@keyframes blink { 0%,80%,100%{opacity:.3} 40%{opacity:1} }
+
+/* ── INPUT AREA ── */
+.input-area {
+  height:var(--input-h);
+  background:var(--surface2);border-top:1px solid var(--border);
+  padding:0 14px;display:flex;gap:10px;align-items:center;flex-shrink:0;
+}
+#chatInput {
+  flex:1;background:rgba(255,255,255,0.07);border:1px solid var(--border2);
+  border-radius:12px;padding:10px 14px;color:#fff;font-size:14px;outline:none;
+  font-family:inherit;transition:border .2s;
+}
+#chatInput:focus { border-color:rgba(230,57,70,0.5); }
+#chatInput::placeholder { color:var(--text3); }
+#chatBtn {
+  width:40px;height:40px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  border:none;cursor:pointer;font-size:17px;transition:opacity .15s;
+}
+#chatBtn:active { opacity:.8; }
+
+/* ── PROCESS PANEL ── */
+.process-panel {
+  flex:1;overflow-y:auto;padding:14px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.process-search-wrap { position:relative;flex-shrink:0; }
+#processSearch {
+  width:100%;background:rgba(255,255,255,0.07);border:1px solid var(--border2);
+  border-radius:12px;padding:10px 14px 10px 38px;
+  color:#fff;font-size:14px;outline:none;font-family:inherit;
+  transition:border .2s;
+}
+#processSearch:focus { border-color:rgba(230,57,70,0.5); }
+#processSearch::placeholder { color:var(--text3); }
+.search-icon {
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  color:var(--text3);font-size:16px;pointer-events:none;
+}
+.process-list { display:flex;flex-direction:column;gap:8px; }
+.process-card {
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:14px;overflow:hidden;cursor:pointer;
+  transition:border-color .2s;
+}
+.process-card:hover,.process-card:focus-within { border-color:var(--border2); }
+.process-header {
+  padding:14px 16px;display:flex;align-items:center;gap:10px;
+}
+.process-icon {
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.process-title { font-size:14px;font-weight:700;letter-spacing:-0.3px; }
+.process-meta { font-size:11px;color:var(--text3);margin-top:2px; }
+.process-chevron { margin-left:auto;color:var(--text3);font-size:18px;transition:transform .25s; }
+.process-card.open .process-chevron { transform:rotate(180deg); }
+.process-body {
+  display:none;padding:0 16px 14px;
+  border-top:1px solid var(--border);
+  font-size:13px;line-height:1.7;color:rgba(255,255,255,0.8);
+}
+.process-card.open .process-body { display:block; }
+.process-step {
+  display:flex;gap:10px;align-items:flex-start;
+  padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.process-step:last-child { border-bottom:none; }
+.step-num {
+  width:22px;height:22px;border-radius:6px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;margin-top:2px;
+}
+.step-content { flex:1; }
+.step-title { font-weight:600;font-size:13px;margin-bottom:2px;color:var(--text); }
+.step-desc { font-size:12.5px;color:var(--text2); }
+.step-tip {
+  background:rgba(244,162,97,0.1);border-left:2px solid var(--secondary);
+  border-radius:0 6px 6px 0;padding:6px 10px;
+  font-size:12px;color:var(--secondary);margin-top:6px;
+}
+.process-tag {
+  display:inline-block;font-size:10px;border-radius:5px;padding:2px 7px;
+  background:rgba(255,255,255,0.08);color:var(--text3);margin-right:4px;
+}
+.process-empty { text-align:center;color:var(--text3);font-size:13px;padding:40px 20px; }
+.add-process-btn {
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px;border-radius:12px;
+  background:rgba(255,255,255,0.05);border:1px dashed var(--border2);
+  color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit;
+  transition:background .15s;flex-shrink:0;
+}
+.add-process-btn:active { background:rgba(255,255,255,0.1); }
+
+/* ── MODAL ── */
+#modal {
+  display:none;position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);
+  align-items:flex-end;justify-content:center;
+  padding:0;
+}
+@media(min-width:480px){
+  #modal { align-items:center;padding:20px; }
+  .modal-box { border-radius:20px;max-height:80vh; }
+}
 #modal.open { display:flex; }
-.modal-box { width:100%;max-width:440px;background:#1a1a2e;border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:28px 24px;display:flex;flex-direction:column;gap:14px; }
+.modal-box {
+  width:100%;max-width:460px;
+  background:#1a1a2e;border:1px solid var(--border2);
+  border-radius:20px 20px 0 0;
+  padding:24px 20px;
+  display:flex;flex-direction:column;gap:12px;
+  max-height:90vh;overflow-y:auto;
+}
+.modal-handle {
+  width:36px;height:4px;background:rgba(255,255,255,0.2);
+  border-radius:2px;margin:0 auto -4px;flex-shrink:0;
+}
+@media(min-width:480px){ .modal-handle { display:none; } }
 .modal-title { color:#fff;font-size:16px;font-weight:700; }
-.modal-sub { color:rgba(255,255,255,0.45);font-size:13px;margin-top:-8px; }
-.modal-label { color:rgba(255,255,255,0.7);font-size:13px;margin-bottom:4px; }
-.modal-input,.modal-textarea,.modal-select { width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:11px 14px;color:#fff;font-size:14px;outline:none;font-family:inherit; }
+.modal-sub { color:var(--text3);font-size:13px;margin-top:-6px; }
+.modal-label { color:var(--text2);font-size:13px;margin-bottom:4px; }
+.modal-input,.modal-textarea,.modal-select {
+  width:100%;background:rgba(255,255,255,0.07);border:1px solid var(--border2);
+  border-radius:11px;padding:10px 13px;color:#fff;font-size:14px;outline:none;font-family:inherit;
+  transition:border .2s;
+}
+.modal-input:focus,.modal-textarea:focus,.modal-select:focus { border-color:rgba(230,57,70,0.5); }
 .modal-textarea { resize:vertical;min-height:80px; }
 .modal-select option { background:#1a1a2e; }
 .modal-btns { display:flex;gap:10px;margin-top:4px; }
-.modal-cancel { flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:14px;cursor:pointer;font-family:inherit; }
-.modal-submit { flex:2;padding:12px;border-radius:12px;background:linear-gradient(135deg,#e63946,#f4a261);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit; }
-#modalError { color:#ff6b6b;font-size:13px;min-height:16px; }
-::-webkit-scrollbar { width:4px; }
-::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.2);border-radius:4px; }
+.modal-cancel {
+  flex:1;padding:12px;border-radius:12px;
+  background:rgba(255,255,255,0.07);border:1px solid var(--border2);
+  color:#fff;font-size:14px;cursor:pointer;font-family:inherit;
+}
+.modal-submit {
+  flex:2;padding:12px;border-radius:12px;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+#modalError,.process-modal-error { color:#ff6b6b;font-size:13px;min-height:16px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:3px;height:3px; }
+::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15);border-radius:3px; }
 </style>
 </head>
 <body>
 
+<!-- LOCK -->
 <div id="lockScreen">
-  <div class="lock-icon">🔐</div>
-  <div class="lock-title">제일기획 용어 도우미</div>
-  <div class="lock-sub">접근하려면 비밀번호를 입력해주세요</div>
-  <input id="pwInput" type="password" placeholder="비밀번호 입력" />
+  <div class="lock-logo">🏢</div>
+  <div class="lock-title">제일기획 지식 도우미</div>
+  <div class="lock-sub">업무 용어 · 프로세스 가이드 통합 검색</div>
+  <input id="pwInput" type="password" placeholder="비밀번호 입력" autocomplete="current-password" />
   <div id="pwError"></div>
   <button id="pwBtn" type="button">입장하기</button>
 </div>
 
+<!-- MAIN APP -->
 <div id="mainApp">
+
+  <!-- HEADER -->
   <div class="header">
-    <div class="header-icon">📘</div>
+    <div class="header-icon">🏢</div>
     <div>
-      <div class="header-title">제일기획 용어 도우미</div>
-      <div class="header-sub">필수 용어집 기반 검색 챗봇 · 뭐든 물어봐요!</div>
+      <div class="header-title">제일기획 지식 도우미</div>
+      <div class="header-sub">용어집 · 프로세스 가이드 통합</div>
     </div>
     <div class="header-right">
       <button id="addBtn" type="button">➕ 용어 추가</button>
-      <div class="status"><div class="dot"></div><span>온라인</span></div>
+      <div class="status-dot"></div>
+      <span class="status-txt">온라인</span>
     </div>
   </div>
-  <div class="messages" id="messages"></div>
-  <div class="input-area">
-    <input id="chatInput" type="text" placeholder="궁금한 용어를 입력해봐요..." />
-    <button id="chatBtn" type="button">🔍</button>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" data-tab="chat" type="button">
+      <span class="tab-icon">💬</span>용어 검색
+    </button>
+    <button class="tab" data-tab="process" type="button">
+      <span class="tab-icon">📋</span>프로세스 가이드
+    </button>
   </div>
+
+  <!-- CHAT PANEL -->
+  <div class="panel active" id="panel-chat">
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <input id="chatInput" type="text" placeholder="궁금한 용어를 입력해봐요..." />
+      <button id="chatBtn" type="button">🔍</button>
+    </div>
+  </div>
+
+  <!-- PROCESS PANEL -->
+  <div class="panel" id="panel-process">
+    <div class="process-panel">
+      <div class="process-search-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="processSearch" type="text" placeholder="프로세스 검색..." />
+      </div>
+      <div class="process-list" id="processList"></div>
+      <button class="add-process-btn" id="addProcessBtn" type="button">
+        ✏️ 프로세스 가이드 추가 제안하기
+      </button>
+    </div>
+  </div>
+
 </div>
 
+<!-- TERM ADD MODAL -->
 <div id="modal">
   <div class="modal-box">
+    <div class="modal-handle"></div>
     <div class="modal-title">✏️ 새 용어 추가</div>
     <div class="modal-sub">추가하면 모든 사용자에게 즉시 반영돼요!</div>
     <div>
@@ -129,17 +441,75 @@ body { min-height:100vh;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%
   </div>
 </div>
 
+<!-- PROCESS ADD MODAL -->
+<div id="processModal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📋 프로세스 가이드 추가</div>
+    <div class="modal-sub">업무 프로세스 지식을 공유해 주세요</div>
+    <div>
+      <div class="modal-label">프로세스 제목 *</div>
+      <input id="procTitle" class="modal-input" type="text" placeholder="예) 완료견적 처리 절차" />
+    </div>
+    <div>
+      <div class="modal-label">카테고리 *</div>
+      <select id="procCat" class="modal-select">
+        <option value="AE 업무">AE 업무</option>
+        <option value="미디어 업무">미디어 업무</option>
+        <option value="제작 업무">제작 업무</option>
+        <option value="디지털 업무">디지털 업무</option>
+        <option value="BE 업무">BE 업무</option>
+        <option value="공통 행정">공통 행정</option>
+        <option value="기타">기타</option>
+      </select>
+    </div>
+    <div>
+      <div class="modal-label">설명 (전체 흐름 요약) *</div>
+      <textarea id="procDesc" class="modal-textarea" placeholder="어떤 프로세스인지 간단히 설명해주세요"></textarea>
+    </div>
+    <div>
+      <div class="modal-label">단계별 절차 (줄바꿈으로 각 단계 구분) *</div>
+      <textarea id="procSteps" class="modal-textarea" style="min-height:100px" placeholder="예)
+브리프 접수 및 내용 확인
+견적 요청서 작성
+외주업체 견적 수령
+광고주 견적서 작성"></textarea>
+    </div>
+    <div id="process-modal-error" class="process-modal-error"></div>
+    <div class="modal-btns">
+      <button id="procCancel" class="modal-cancel" type="button">취소</button>
+      <button id="procSubmit" class="modal-submit" type="button">제출하기 🚀</button>
+    </div>
+  </div>
+</div>
+
+<style>
+#processModal {
+  display:none;position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);
+  align-items:flex-end;justify-content:center;padding:0;
+}
+@media(min-width:480px){
+  #processModal { align-items:center;padding:20px; }
+}
+#processModal.open { display:flex; }
+</style>
+
 <script>
 var CORRECT_PW = '2026cheil';
 var db = null;
 var firebaseTerms = [];
+var firebaseProcesses = [];
 
+/* ──────────────────────────────────────
+   GLOSSARY DATA
+────────────────────────────────────── */
 var BASE_GLOSSARY = [
   { name:"견적서", category:"AE > 비용/견적", def:"캠페인 제작비에 대한 산출 내역. (1) 광고주 청구 견적, (2) 외주 견적으로 나뉜다. (1)-(2) = 제일기획의 수수료(매출총이익)." },
   { name:"사전견적", category:"AE > 비용/견적", def:"실제 콘텐츠 제작 전의 가견적. 외주업체에게 먼저 받고, 광고주 청구 견적을 작성·제출한다." },
   { name:"완료견적", category:"AE > 비용/견적", def:"콘텐츠 온에어 후 모든 제작 작업이 종료되었을 때 최종으로 지불/청구해야 하는 금액. AE 업무의 꽃★" },
   { name:"취급고", category:"AE > 비용/견적", def:"해당 캠페인의 제작비+매체비를 합친 금액." },
-  { name:"외주비", category:"AE > 비용/견적", def:"캠페인 제작비 중 외주업체에게 지불되는 총 금액. 최대한 Down, 무조건 Down!" },
+  { name:"외주비", category:"AE > 비용/견적", def:"캠페인 제작비 중 외주업체에게 지불되는 총 금액." },
   { name:"정가항목", category:"AE > 비용/견적", def:"광고주 청구 견적은 정가항목+외주비+대행수수료로 구성. 기본 인건비에 가격을 매겨 청구하는 항목." },
   { name:"진행비", category:"AE > 비용/견적", def:"캠페인 제작 목적으로 쓰인 경비 일체. 교통비, 촬영장 식사비 등." },
   { name:"내수", category:"AE > 비용/실적", def:"(광고주 완료견적 - 외주비 완료견적)의 금액. 공식 수수료율 17.65%. 내수율: (광고주 청구가-외주비)/광고주 청구가." },
@@ -237,13 +607,92 @@ var BASE_GLOSSARY = [
   { name:"형압", category:"BE > 인쇄/제작", def:"엠보싱. 종이에 원하는 모양으로 튀어나오도록 눌러 가공하는 것." },
 ];
 
+/* ──────────────────────────────────────
+   PROCESS DATA (기본 내장)
+────────────────────────────────────── */
+var BASE_PROCESSES = [
+  {
+    id:'p1', icon:'💰', color:'#e63946',
+    title:'완료견적 처리 절차', category:'AE 업무',
+    tags:['AE','견적','필수'],
+    desc:'캠페인 온에어 후 최종 정산을 위해 완료견적을 작성하고 광고주에게 청구하는 전체 과정입니다.',
+    steps:[
+      { title:'작업 완료 확인', desc:'모든 외주업체 작업이 완료되었는지 확인. 누락된 작업이 없는지 체크리스트 점검.' },
+      { title:'외주비 완료견적 수령', desc:'각 외주업체로부터 최종 완료견적서를 수령. 사전견적 대비 변경 사항 확인.', tip:'사전견적과 금액 차이가 있을 경우 반드시 사유를 기록해둘 것.' },
+      { title:'광고주 청구 견적 작성', desc:'외주비를 기준으로 정가항목·대행수수료를 포함한 광고주 청구 완료견적 작성.' },
+      { title:'내부 승인', desc:'팀장 또는 담당 임원에게 완료견적 검토 및 승인 요청.' },
+      { title:'광고주 제출 및 컨펌', desc:'완료견적서를 광고주에게 제출하고 서명/승인을 받는다.' },
+      { title:'세금계산서 발행', desc:'광고주 컨펌 완료 후 매출 세금계산서 발행. Gate 시스템에 등록.', tip:'마감 일정을 반드시 확인! 월 마감 전에 발행해야 당월 매출로 인식된다.' },
+      { title:'외주업체 지급', desc:'외주업체 완료견적 기준으로 지급 처리. 거래명세표 발송.' },
+    ]
+  },
+  {
+    id:'p2', icon:'📺', color:'#f4a261',
+    title:'TV 광고 청약 프로세스', category:'미디어 업무',
+    tags:['미디어','TV','청약'],
+    desc:'TV 광고 집행을 위해 미디어믹스를 확정하고 렙사에 청약하는 절차입니다.',
+    steps:[
+      { title:'미디어 브리프 수령', desc:'AE로부터 캠페인 목표, 예산, 타깃, 온에어 기간 등이 담긴 미디어 브리프 수령.' },
+      { title:'미디어믹스 기획', desc:'채널별 효율 지표(GRP, CPRP, Reach)를 분석하여 최적 미디어믹스 플랜 수립.' },
+      { title:'광고주 컨펌', desc:'미디어믹스 플랜을 광고주에게 보고하고 최종 승인 획득.', tip:'지상파 청약 마감은 매월 20일경. 이 날짜를 역산하여 컨펌 일정을 잡을 것.' },
+      { title:'렙사 청약 신청', desc:'컨펌된 미디어믹스 기준으로 각 렙사에 청약 신청. 물량 확보 여부 확인.' },
+      { title:'큐시트 수령 및 확인', desc:'렙사로부터 큐시트 수령 후 요청 스케줄 반영 여부 확인.' },
+      { title:'소재 출고', desc:'확정된 스케줄에 맞춰 제작물 출고 요청. 출고 마감일 엄수.', tip:'심의 기간을 고려하여 출고 일정 여유있게 확보할 것.' },
+    ]
+  },
+  {
+    id:'p3', icon:'🎪', color:'#4ade80',
+    title:'행사/이벤트 제작 프로세스', category:'BE 업무',
+    tags:['BE','이벤트','행사'],
+    desc:'오프라인 이벤트·전시·행사를 기획하고 현장 운영까지 진행하는 전체 프로세스입니다.',
+    steps:[
+      { title:'브리프 분석 및 기획안 수립', desc:'클라이언트 요구사항을 분석하고 행사 컨셉, 동선, 연출 방향 등 기획안 작성.' },
+      { title:'PPM (Pre-Production Meeting)', desc:'클라이언트·제작사·스태프와 함께 상세 제작 내용 협의. 연출, 영상, 무대, 음향 등 파트별 체크.',tip:'PPM 시 결정된 사항은 반드시 의사록으로 정리하여 배포할 것.' },
+      { title:'외주업체 선정 및 계약', desc:'무대, 영상, 조명, 음향, 진행자 등 파트별 외주업체 선정 및 견적 수령. 계약서 체결.' },
+      { title:'리허설 진행', desc:'행사 전일 또는 당일 오전 현장 리허설 실시. 모든 큐(cue) 포인트 확인.', tip:'기깍끼(타이밍) 체크는 리허설 때 반드시! 마(정적)가 뜨면 행사 분위기 망친다.' },
+      { title:'행사 현장 운영', desc:'진행 큐시트에 따라 현장 운영. 스태프별 포지션 및 역할 사전 배정.' },
+      { title:'완료 정산', desc:'행사 종료 후 외주업체별 완료견적 수령 및 완료 정산 처리.' },
+    ]
+  },
+  {
+    id:'p4', icon:'🌐', color:'#818cf8',
+    title:'삼성닷컴 페이지 제작 프로세스', category:'디지털 업무',
+    tags:['디지털','삼성닷컴','AEM'],
+    desc:'삼성닷컴 제품 페이지(PDP 등)를 AEM을 통해 제작하고 GRO(글로벌 퍼블리싱)하는 과정입니다.',
+    steps:[
+      { title:'브리프 및 RTS 일정 확인', desc:'제품 RTS(Ready To Sell) 일정 기준으로 역산하여 제작 일정 수립.' },
+      { title:'기획 및 와이어프레임 작성', desc:'페이지 구조, GNB 구성, UX 플로우 기획. 와이어프레임으로 레이아웃 확정.' },
+      { title:'디자인 시안 제작 및 컨펌', desc:'KV 기준 디자인 시안 작성. 클라이언트 피드백 반영 후 최종 컨펌.' },
+      { title:'AEM 개발 및 빌드', desc:'컨펌된 디자인 기준으로 AEM 내 페이지 빌드. QA 체크리스트 작성.', tip:'디바이스(PC/모바일/태블릿)별 QA를 반드시 진행할 것.' },
+      { title:'QA 및 수정', desc:'전 디바이스 QA 진행. 이슈 리스트업 후 개발팀에 수정 요청.' },
+      { title:'GRO (글로벌 퍼블리싱)', desc:'QA 완료 후 글로벌 국가 대상 GRO 진행. 각 국가별 현지화 내용 확인.' },
+    ]
+  },
+  {
+    id:'p5', icon:'💳', color:'#fb923c',
+    title:'법인카드 경비 처리 절차', category:'공통 행정',
+    tags:['행정','경비','법인카드'],
+    desc:'법인카드 사용 후 경비 처리 및 정산하는 사내 행정 절차입니다.',
+    steps:[
+      { title:'법인카드 사용', desc:'부서회의비, 접대비 등 업무 목적으로 법인카드 사용. 반드시 영수증 보관.' },
+      { title:'지출 목적 메모', desc:'사용 직후 사용 목적, 참석자, 프로젝트명 등 메모. 나중에 기억이 안 남.', tip:'영수증에 바로 메모하거나 사진으로 남겨두는 습관을 들일 것.' },
+      { title:'비용 처리 시스템 등록', desc:'사내 경비처리 시스템에 사용 내역 등록. 프로젝트 코드(잡 번호) 입력.' },
+      { title:'증빙 서류 첨부', desc:'영수증, 거래명세표 등 증빙 서류를 스캔/촬영하여 시스템에 첨부.' },
+      { title:'팀장 승인', desc:'팀장에게 경비 처리 승인 요청. 승인 후 정산 완료.' },
+    ]
+  },
+];
+
+/* ──────────────────────────────────────
+   SEARCH
+────────────────────────────────────── */
 function getAllTerms() { return BASE_GLOSSARY.concat(firebaseTerms); }
 function normalize(str) { return str.toLowerCase().replace(/[\s\-_\/]/g,''); }
 
 function search(query) {
   var q = normalize(query);
-  if (!q) return [];
-  var scored = getAllTerms().map(function(term) {
+  if(!q) return [];
+  var scored = getAllTerms().map(function(term){
     var name=normalize(term.name), def=normalize(term.def), cat=normalize(term.category);
     var score=0;
     if(name===q) score+=100;
@@ -258,12 +707,15 @@ function search(query) {
     .slice(0,5).map(function(s){return s.term;});
 }
 
+/* ──────────────────────────────────────
+   CHAT
+────────────────────────────────────── */
 function addMessage(role, content, isHTML) {
   var msgs = document.getElementById('messages');
   var div = document.createElement('div');
   div.className = 'msg '+role;
   if(role==='bot'){
-    div.innerHTML='<div class="avatar">📘</div><div class="bubble bot"></div>';
+    div.innerHTML='<div class="avatar">🏢</div><div class="bubble bot"></div>';
     if(isHTML) div.querySelector('.bubble').innerHTML=content;
     else div.querySelector('.bubble').textContent=content;
   } else {
@@ -274,14 +726,34 @@ function addMessage(role, content, isHTML) {
   div.scrollIntoView({behavior:'smooth',block:'end'});
 }
 
+function showTyping() {
+  var msgs = document.getElementById('messages');
+  var div = document.createElement('div');
+  div.className='msg bot'; div.id='typingIndicator';
+  div.innerHTML='<div class="avatar">🏢</div><div class="bubble bot"><div class="typing"><span></span><span></span><span></span></div></div>';
+  msgs.appendChild(div);
+  div.scrollIntoView({behavior:'smooth',block:'end'});
+}
+function removeTyping() {
+  var t=document.getElementById('typingIndicator');
+  if(t) t.remove();
+}
+
 function renderResults(query, results) {
-  if(results.length===0){ addMessage('bot','"'+query+'"에 대한 용어를 찾지 못했어요 😅\n\n상단 ➕ 버튼으로 직접 추가해봐요!',false); return; }
+  if(results.length===0){
+    addMessage('bot','"'+query+'"에 대한 용어를 찾지 못했어요 😅\n\n상단 ➕ 버튼으로 직접 추가하거나, 📋 프로세스 가이드 탭을 확인해봐요!',false);
+    return;
+  }
   var html='<div style="margin-bottom:6px">📖 <b>"'+query+'"</b> '+(results.length===1?'찾았어요!':'관련 용어 '+results.length+'개 찾았어요!')+'</div>';
   results.forEach(function(term){
     var badge=term.isNew?'<span class="term-badge">NEW</span>':'';
-    html+='<div class="term-card"><div class="term-name">'+term.name+badge+'</div><div class="term-cat">📂 '+term.category+'</div><div class="term-def">'+term.def+'</div></div>';
+    html+='<div class="term-card"><div class="term-name">'+escapeHtml(term.name)+badge+'</div><div class="term-cat">📂 '+escapeHtml(term.category)+'</div><div class="term-def">'+escapeHtml(term.def)+'</div></div>';
   });
   addMessage('bot',html,true);
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function handleSend(text) {
@@ -291,9 +763,79 @@ function handleSend(text) {
   addMessage('user',query,false);
   var chips=document.getElementById('chips');
   if(chips) chips.remove();
-  setTimeout(function(){ renderResults(query,search(query)); },200);
+
+  showTyping();
+  setTimeout(function(){
+    removeTyping();
+    renderResults(query, search(query));
+  }, 300);
 }
 
+/* ──────────────────────────────────────
+   PROCESS PANEL
+────────────────────────────────────── */
+function getAllProcesses() { return BASE_PROCESSES.concat(firebaseProcesses); }
+
+function renderProcessCard(proc) {
+  var card = document.createElement('div');
+  card.className = 'process-card';
+  card.dataset.id = proc.id;
+
+  var tags = (proc.tags||[]).map(function(t){ return '<span class="process-tag">'+escapeHtml(t)+'</span>'; }).join('');
+
+  var stepsHtml = (proc.steps||[]).map(function(s,i){
+    var tip = s.tip ? '<div class="step-tip">💡 '+escapeHtml(s.tip)+'</div>' : '';
+    return '<div class="process-step"><div class="step-num">'+(i+1)+'</div><div class="step-content"><div class="step-title">'+escapeHtml(s.title)+'</div><div class="step-desc">'+escapeHtml(s.desc)+'</div>'+tip+'</div></div>';
+  }).join('');
+
+  card.innerHTML = '<div class="process-header">'
+    +'<div class="process-icon" style="background:'+proc.color+'22;color:'+proc.color+'">'+proc.icon+'</div>'
+    +'<div><div class="process-title">'+escapeHtml(proc.title)+'</div>'
+    +'<div class="process-meta">'+escapeHtml(proc.category)+' &nbsp;·&nbsp; '+tags+'</div></div>'
+    +'<span class="process-chevron">⌄</span>'
+    +'</div>'
+    +'<div class="process-body">'+
+    '<div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:10px;line-height:1.6">'+escapeHtml(proc.desc)+'</div>'
+    +stepsHtml+'</div>';
+
+  card.querySelector('.process-header').addEventListener('click', function(){
+    card.classList.toggle('open');
+  });
+  return card;
+}
+
+function renderProcessList(filter) {
+  var list = document.getElementById('processList');
+  list.innerHTML='';
+  var all = getAllProcesses();
+  var q = (filter||'').toLowerCase().replace(/\s/g,'');
+  var filtered = q ? all.filter(function(p){
+    return normalize(p.title).indexOf(q)!==-1
+      || normalize(p.category).indexOf(q)!==-1
+      || (p.tags||[]).some(function(t){ return normalize(t).indexOf(q)!==-1; });
+  }) : all;
+
+  if(!filtered.length){
+    var empty=document.createElement('div');
+    empty.className='process-empty';
+    empty.textContent='검색 결과가 없어요 😅';
+    list.appendChild(empty);
+    return;
+  }
+  filtered.forEach(function(p){ list.appendChild(renderProcessCard(p)); });
+}
+
+/* ──────────────────────────────────────
+   TABS
+────────────────────────────────────── */
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.dataset.tab===name); });
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.toggle('active', p.id==='panel-'+name); });
+}
+
+/* ──────────────────────────────────────
+   MODALS
+────────────────────────────────────── */
 function openModal() { document.getElementById('modalError').textContent=''; document.getElementById('modal').classList.add('open'); }
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
@@ -305,69 +847,135 @@ function submitTerm() {
   if(!name||!def){ errEl.textContent='용어 이름과 설명은 필수예요!'; return; }
   var dup=getAllTerms().find(function(t){ return normalize(t.name)===normalize(name); });
   if(dup){ errEl.textContent='"'+name+'"은 이미 등록된 용어예요!'; return; }
-
-  var submitBtn=document.getElementById('modalSubmit');
-  submitBtn.textContent='추가 중...';
-  submitBtn.disabled=true;
-
-  db.collection('terms').add({
-    name:name, category:cat, def:def, createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function(){
-    closeModal();
-    document.getElementById('newName').value='';
-    document.getElementById('newDef').value='';
-    errEl.textContent='';
-    addMessage('bot','✅ "'+name+'" 용어가 추가됐어요! 모든 사용자에게 즉시 반영됩니다 🎉',false);
-  }).catch(function(e){
-    errEl.textContent='저장 중 오류: '+e.message;
-    console.error(e);
-  }).finally(function(){
-    submitBtn.textContent='추가하기 🚀';
-    submitBtn.disabled=false;
-  });
+  var btn=document.getElementById('modalSubmit');
+  btn.textContent='추가 중...'; btn.disabled=true;
+  db.collection('terms').add({name:name,category:cat,def:def,createdAt:firebase.firestore.FieldValue.serverTimestamp()})
+    .then(function(){
+      closeModal();
+      document.getElementById('newName').value='';
+      document.getElementById('newDef').value='';
+      errEl.textContent='';
+      addMessage('bot','✅ "'+name+'" 용어가 추가됐어요! 🎉',false);
+    }).catch(function(e){ errEl.textContent='저장 오류: '+e.message; })
+    .finally(function(){ btn.textContent='추가하기 🚀'; btn.disabled=false; });
 }
 
+function openProcessModal() { document.getElementById('process-modal-error').textContent=''; document.getElementById('processModal').classList.add('open'); }
+function closeProcessModal() { document.getElementById('processModal').classList.remove('open'); }
+
+function submitProcess() {
+  var title=document.getElementById('procTitle').value.trim();
+  var cat=document.getElementById('procCat').value;
+  var desc=document.getElementById('procDesc').value.trim();
+  var stepsRaw=document.getElementById('procSteps').value.trim();
+  var errEl=document.getElementById('process-modal-error');
+  if(!title||!desc||!stepsRaw){ errEl.textContent='모든 항목을 입력해주세요!'; return; }
+
+  var stepLines=stepsRaw.split('\n').map(function(s){return s.trim();}).filter(Boolean);
+  var steps=stepLines.map(function(line){ return {title:line,desc:''}; });
+  var icons=['📋','💡','⚙️','🎯','✅','📊','🔧','📝'];
+  var colors=['#e63946','#f4a261','#4ade80','#818cf8','#fb923c','#38bdf8','#f472b6','#a3e635'];
+  var rand=Math.floor(Math.random()*icons.length);
+
+  var btn=document.getElementById('procSubmit');
+  btn.textContent='제출 중...'; btn.disabled=true;
+
+  db.collection('processes').add({
+    title:title,category:cat,desc:desc,steps:steps,
+    icon:icons[rand],color:colors[rand],tags:[cat],
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    closeProcessModal();
+    document.getElementById('procTitle').value='';
+    document.getElementById('procDesc').value='';
+    document.getElementById('procSteps').value='';
+    errEl.textContent='';
+    addMessage('bot','✅ 프로세스 가이드 "'+title+'"가 추가됐어요! 프로세스 탭에서 확인해봐요 🎉',false);
+  }).catch(function(e){ errEl.textContent='저장 오류: '+e.message; })
+    .finally(function(){ btn.textContent='제출하기 🚀'; btn.disabled=false; });
+}
+
+/* ──────────────────────────────────────
+   FIREBASE
+────────────────────────────────────── */
 function initFirebase() {
   var firebaseConfig = {
-    apiKey: "AIzaSyCgqivFKXPCfBqbcR5nUEylfVvBf0EpRiw",
-    authDomain: "cheilgrayword.firebaseapp.com",
-    projectId: "cheilgrayword",
-    storageBucket: "cheilgrayword.firebasestorage.app",
-    messagingSenderId: "1066942473246",
-    appId: "1:1066942473246:web:a933a6bcb1e8b5551cba0f"
+    apiKey:"AIzaSyCgqivFKXPCfBqbcR5nUEylfVvBf0EpRiw",
+    authDomain:"cheilgrayword.firebaseapp.com",
+    projectId:"cheilgrayword",
+    storageBucket:"cheilgrayword.firebasestorage.app",
+    messagingSenderId:"1066942473246",
+    appId:"1:1066942473246:web:a933a6bcb1e8b5551cba0f"
   };
   firebase.initializeApp(firebaseConfig);
   db = firebase.firestore();
 
-  // 실시간 동기화
-  db.collection('terms').onSnapshot(function(snapshot) {
-    firebaseTerms = [];
-    snapshot.forEach(function(doc) {
-      var d = doc.data();
-      firebaseTerms.push({ name:d.name, category:d.category, def:d.def, isNew:true, id:doc.id });
+  db.collection('terms').onSnapshot(function(snapshot){
+    firebaseTerms=[];
+    snapshot.forEach(function(doc){
+      var d=doc.data();
+      firebaseTerms.push({name:d.name,category:d.category,def:d.def,isNew:true,id:doc.id});
     });
-    console.log('Firebase 동기화 완료, 추가 용어:', firebaseTerms.length);
+  });
+
+  db.collection('processes').onSnapshot(function(snapshot){
+    firebaseProcesses=[];
+    snapshot.forEach(function(doc){
+      var d=doc.data();
+      firebaseProcesses.push({
+        id:doc.id,icon:d.icon||'📋',color:d.color||'#e63946',
+        title:d.title,category:d.category,desc:d.desc,
+        steps:d.steps||[],tags:d.tags||[],isNew:true
+      });
+    });
+    if(document.getElementById('panel-process').classList.contains('active')){
+      renderProcessList(document.getElementById('processSearch').value);
+    }
   });
 }
 
+/* ──────────────────────────────────────
+   INIT
+────────────────────────────────────── */
 function initApp() {
-  // 이벤트 연결
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var name=tab.dataset.tab;
+      switchTab(name);
+      if(name==='process') renderProcessList();
+    });
+  });
+
+  // Chat events
   document.getElementById('chatBtn').onclick = function(){ handleSend(); };
   document.getElementById('chatInput').onkeydown = function(e){ if(e.key==='Enter') handleSend(); };
+
+  // Term modal
   document.getElementById('addBtn').onclick = openModal;
   document.getElementById('modalCancel').onclick = closeModal;
   document.getElementById('modalSubmit').onclick = submitTerm;
   document.getElementById('modal').onclick = function(e){ if(e.target===document.getElementById('modal')) closeModal(); };
 
-  // 초기 메시지
-  addMessage('bot','안녕하세요! 👋 제일기획 필수 용어집 검색 챗봇이에요.\n\n궁금한 용어를 검색하거나, 상단 ➕ 버튼으로 새 용어를 추가할 수 있어요! 🔍',false);
+  // Process modal
+  document.getElementById('addProcessBtn').onclick = openProcessModal;
+  document.getElementById('procCancel').onclick = closeProcessModal;
+  document.getElementById('procSubmit').onclick = submitProcess;
+  document.getElementById('processModal').onclick = function(e){ if(e.target===document.getElementById('processModal')) closeProcessModal(); };
+
+  // Process search
+  document.getElementById('processSearch').oninput = function(){
+    renderProcessList(this.value);
+  };
+
+  // Welcome message
+  addMessage('bot','안녕하세요! 👋 제일기획 지식 도우미예요.\n\n💬 용어 검색 탭에서 실무 용어를 찾아보거나,\n📋 프로세스 가이드 탭에서 업무 절차를 확인해봐요!',false);
 
   var msgs=document.getElementById('messages');
   var chipsDiv=document.createElement('div');
   chipsDiv.id='chips';
   var hint=document.createElement('div');
-  hint.className='hint';
-  hint.textContent='이런 거 검색해봐요 👇';
+  hint.className='hint'; hint.textContent='이런 거 검색해봐요 👇';
   chipsDiv.appendChild(hint);
   var wrap=document.createElement('div');
   wrap.className='suggestions';
@@ -381,11 +989,12 @@ function initApp() {
   msgs.appendChild(chipsDiv);
 }
 
-// 페이지 로드 즉시 Firebase 초기화
+/* ──────────────────────────────────────
+   BOOT
+────────────────────────────────────── */
 initFirebase();
 
-// 비밀번호 확인
-document.getElementById('pwBtn').onclick = function() {
+document.getElementById('pwBtn').onclick = function(){
   if(document.getElementById('pwInput').value===CORRECT_PW){
     document.getElementById('lockScreen').style.display='none';
     document.getElementById('mainApp').style.display='flex';
